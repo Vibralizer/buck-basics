@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.3.7] - 2025-12-03
+- In ResolutionSettingsCoordinator and ResolutionChoiceProvider, if AutoResolution is enabled, fullscreen mode will set the native resolution. Windowed mode will set a sensible 16:9 resolution if m_autoResolutionSetsNativeInWindowedMode is true.
+- Cleaned up some formatting in ResolutionChoiceProvider.
+- Added GreatestCommonDivisor() and LeastCommonMultiple() methods to the ExtensionMethods class.
+
 ## [3.3.6] - 2025-10-30
 - A MenuScreen can now optionally _not_ select the first item when being opened.
 
