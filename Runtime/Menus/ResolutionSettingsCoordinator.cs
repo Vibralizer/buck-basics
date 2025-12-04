@@ -1,5 +1,6 @@
 // MIT License Copyright (c) 2025 BUCK Design LLC - https://github.com/buck-co
 
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,6 +25,12 @@ namespace Buck
         [SerializeField] BoolVariable m_autoVariable;
         [SerializeField] BoolVariable m_fullScreenVariable;
 
+        bool AutoResolutionOn
+            => m_autoVariable ? m_autoVariable.Value : (m_autoResolutionToggle && m_autoResolutionToggle.isOn);
+
+        bool FullscreenOn
+            => m_fullScreenVariable ? m_fullScreenVariable.Value : (m_fullScreenToggle && m_fullScreenToggle.isOn);
+        
         void OnEnable()
         {
             if (!m_provider) m_provider = GetComponent<ResolutionChoiceProvider>();
@@ -38,16 +45,13 @@ namespace Buck
             // Ensure the provider has built its list before we drive it.
             m_provider.Initialize();
 
-            var autoOn = GetAutoOn();
-            var fullOn = GetFullOn();
-
-            SyncDropdownInteractable(autoOn);
+            SyncDropdownInteractable(AutoResolutionOn);
 
             // Order: set mode (doesn't change size), then optionally set size if Auto is on.
-            m_provider.ApplyFullscreen(fullOn);
+            m_provider.ApplyFullscreen(FullscreenOn);
             
             // If auto is on, apply it; otherwise reapply current selection or the closest selection.
-            if (autoOn)
+            if (AutoResolutionOn)
                 m_provider.ApplyAuto();
             else
                 m_provider.ReapplyCurrentSelectionOrClosest();
@@ -69,8 +73,25 @@ namespace Buck
         }
 
         void OnFullscreenChanged(bool full)
+            => _ = ApplyFullscreenAndAuto(full);
+
+        async Awaitable ApplyFullscreenAndAuto(bool full)
         {
-            m_provider.ApplyFullscreen(full);
+            try
+            {
+                m_provider.ApplyFullscreen(full);
+
+                // Wait for the next frame so that fullscreen can take effect. Then apply the resolution.
+                await Awaitable.NextFrameAsync();
+                
+                if (AutoResolutionOn)
+                    m_provider.ApplyAuto();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         void SyncDropdownInteractable(bool autoOn)
@@ -94,11 +115,5 @@ namespace Buck
                 if (vb && vb.Variable is BoolVariable bv) m_fullScreenVariable = bv;
             }
         }
-
-        bool GetAutoOn()
-            => m_autoVariable ? m_autoVariable.Value : (m_autoResolutionToggle && m_autoResolutionToggle.isOn);
-
-        bool GetFullOn()
-            => m_fullScreenVariable ? m_fullScreenVariable.Value : (m_fullScreenToggle && m_fullScreenToggle.isOn);
     }
 }

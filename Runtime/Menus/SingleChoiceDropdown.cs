@@ -13,11 +13,9 @@ namespace Buck
     [AddComponentMenu("BUCK/UI/Single Choice (Dropdown)")]
     public class SingleChoiceDropdown : MonoBehaviour
     {
-        [Header("Provider")]
         [SerializeField, Tooltip("A component that implements ISingleChoiceProvider.")]
         Component m_providerComponent;
 
-        [Header("Dropdown")]
         [SerializeField, Tooltip("Dropdown to populate. If null, a default TMP_Dropdown will be created here.")]
         TMP_Dropdown m_dropdown;
 

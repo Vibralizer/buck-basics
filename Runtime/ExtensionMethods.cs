@@ -128,15 +128,42 @@ namespace Buck
         /// Returns the nth term of the triangle number sequence.
         /// If you imagine an equilateral triangle formed by rows of dots stacked on each other, these are the total dots when there are n rows of dots.
         /// The triangle numbers starting at n = 0 are: 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, etc.
-        /// They are nice numbers for making a soft, exponential feeling curve that is chunky and integer friendly. 
-        /// The forumula is TriangleNumber(n) = (n+1)*(n/2f)
+        /// They are nice numbers for making a soft, exponential feeling curve that is chunky and integer-friendly. 
+        /// The formula is TriangleNumber(n) = (n+1)*(n/2f)
         /// If a negative n is input, this method will return the triangle number of n, but flip it to be negative
         /// </summary>
         public static int TriangleNumber(int n)
         {
             int val = Mathf.Abs(n);
             val = Mathf.RoundToInt((val+1)*(val/2f));
-            return val * ((n >= 0)?1:-1);
+            return val * (n >= 0 ? 1 : -1);
         }
+        
+        /// <summary>
+        /// Returns the greatest common divisor of two integers.
+        /// </summary>
+        public static int GCD(this int a, int b)
+        {
+            while (b != 0) (a, b) = (b, a % b);
+            return Mathf.Max(1, a);
+        }
+
+        /// <summary>
+        /// Returns the least common multiple of two integers.
+        /// </summary>
+        public static int LCM(this int a, int b)
+            => a * b / GCD(a, b);
+        
+        /// <summary>
+        /// Alias for <see cref="GCD"/>. 
+        /// </summary>
+        public static int GreatestCommonDivisor(this int a, int b)
+            => GCD(a, b);
+        
+        /// <summary>
+        /// Alias for <see cref="LCM"/>.
+        /// </summary>
+        public static int LeastCommonMultiple(this int a, int b)
+            => a * b / GCD(a, b);
     }
 }
