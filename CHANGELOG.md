@@ -1,6 +1,18 @@
 # Changelog
 
-## [3.3.7] - 2025-12-03
+## [3.3.10] - 2026-05-12
+- Fixed an issue where the versioning tool was not in an Editor folder.
+
+## [3.3.9] - 2026-05-12
+- Added an editor script that makes it easy to increment the Unity project version in a reliable way using the major.minor.patch pattern. The tool is accessible in the Unity editor via the `Tools > Versioning` menu.
+
+## [3.3.8] - 2026-02-09
+- Fixed an issue where MenuScreens with m_startVisible enabled would not be added to their MenuController's stack at startup.
+
+## [3.3.7] - 2026-02-04
+- Refined MenuController events to make it easier for subscribers to differentiate between different types of menu navigation.
+
+## [3.3.7-fork] - 2025-12-03
 - In ResolutionSettingsCoordinator and ResolutionChoiceProvider, if AutoResolution is enabled, fullscreen mode will set the native resolution. Windowed mode will set a sensible 16:9 resolution if m_autoResolutionSetsNativeInWindowedMode is true.
 - Cleaned up some formatting in ResolutionChoiceProvider.
 - Added GreatestCommonDivisor() and LeastCommonMultiple() methods to the ExtensionMethods class.
