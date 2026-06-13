@@ -34,6 +34,7 @@ namespace Buck.UIElements
                 }
                 finally { m_suppressEcho = false; }
                 NotifyValueChanged();
+                NotifyUiWrite();
             }
         }
     }

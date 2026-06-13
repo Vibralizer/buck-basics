@@ -21,6 +21,15 @@ namespace Buck.UIElements
     {
         public event EventHandler<BindablePropertyChangedEventArgs> propertyChanged;
 
+        /// <summary>
+        /// Raised only when the Value setter ran because UI wrote to it
+        /// (never for external Variable changes). Useful for save-on-change
+        /// triggers that must ignore programmatic updates.
+        /// </summary>
+        public event Action ValueWrittenByUi;
+
+        protected void NotifyUiWrite() => ValueWrittenByUi?.Invoke();
+
         protected readonly bool m_raiseGameEventOnChange;
         protected bool m_suppressEcho;
 
