@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) 2025 BUCK Design LLC - https://github.com/buck-co
+// MIT License - Copyright (c) 2025 BUCK Design LLC - https://github.com/buck-co
 
 using UnityEngine;
 
@@ -7,6 +7,11 @@ namespace Buck
     /// <summary>
     /// Inherit from this base class to create a singleton.
     /// e.g. public class MyClassName : Singleton<MyClassName> {}
+    /// Scene and prefab instances claim the singleton slot in Awake, so a lazy
+    /// Instance access can never permanently shadow a real instance that simply
+    /// had not loaded yet. Subclasses that declare Awake, OnDestroy, or
+    /// OnApplicationQuit must override the base methods and call the base
+    /// implementation, otherwise the registration logic is skipped for that type.
     /// </summary>
     public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
@@ -15,6 +20,11 @@ namespace Buck
         static bool m_AppIsQuitting = false;
         static object m_Lock = new object();
         static T m_Instance;
+
+        // True while the registered instance is one the Instance getter created
+        // itself (an empty "(Singleton)" GameObject with default field values), as
+        // opposed to a scene or prefab instance carrying real serialized data.
+        static bool m_InstanceWasAutoCreated = false;
 
         /// <summary>
         /// Access singleton instance through this propriety.
@@ -44,9 +54,20 @@ namespace Buck
                             var singletonObject = new GameObject();
                             m_Instance = singletonObject.AddComponent<T>();
                             singletonObject.name = typeof(T).ToString() + " (Singleton)";
+                            m_InstanceWasAutoCreated = true;
+
+                            // If a scene or prefab provides this singleton, the access at
+                            // this log's stack ran before that instance existed (e.g. during
+                            // an async scene load); the real instance takes over in Awake.
+                            Debug.Log("[Singleton] Auto-created '" + singletonObject.name +
+                                "' because no instance was found.", singletonObject);
 
                             // Make instance persistent.
                             DontDestroyOnLoad(singletonObject);
+                        }
+                        else
+                        {
+                            m_InstanceWasAutoCreated = false;
                         }
                     }
 
@@ -55,13 +76,46 @@ namespace Buck
             }
         }
 
-        void OnApplicationQuit()
+        /// <summary>
+        /// Scene and prefab instances register themselves the moment they wake instead
+        /// of waiting for a lazy Instance access to find them. This closes the window
+        /// where an Instance touch during a scene load minted a bare auto-created
+        /// instance that permanently shadowed the real one: if that already happened,
+        /// the real instance takes over and the auto-created stand-in is destroyed.
+        /// </summary>
+        protected virtual void Awake()
+        {
+            lock (m_Lock)
+            {
+                if (m_Instance == null)
+                {
+                    m_Instance = GetComponent<T>();
+                    m_InstanceWasAutoCreated = false;
+                    m_ShuttingDown = false;
+                }
+                else if (m_InstanceWasAutoCreated && !ReferenceEquals(m_Instance, this))
+                {
+                    T autoCreated = m_Instance;
+                    m_Instance = GetComponent<T>();
+                    m_InstanceWasAutoCreated = false;
+                    Debug.LogWarning("[Singleton] '" + gameObject.name + "' is taking over as the '" +
+                        typeof(T) + "' Instance from auto-created '" + autoCreated.gameObject.name +
+                        "' (an Instance access ran before this instance loaded). Destroying the stand-in.",
+                        gameObject);
+                    Destroy(autoCreated.gameObject);
+                }
+                // Otherwise a real instance is already registered; this one is a duplicate
+                // and, matching the historical behavior, is left alone (first one wins).
+            }
+        }
+
+        protected virtual void OnApplicationQuit()
         {
             m_AppIsQuitting = true;
             m_ShuttingDown = true;
         }
 
-        void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (ReferenceEquals(m_Instance, this))
             {
@@ -75,6 +129,7 @@ namespace Buck
                     // If the instance is destroyed because of scene reload / swap, allow recreation.
                     m_Instance = null;
                     m_ShuttingDown = false;
+                    m_InstanceWasAutoCreated = false;
                 }
             }
             // If this wasn't the active instance (duplicate), don't do anything.
