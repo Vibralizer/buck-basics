@@ -1,5 +1,8 @@
 # Changelog
 
+## [3.4.0] - 2026-07-29
+- Singleton<T> scene and prefab instances now register themselves as Instance in their Awake instead of waiting for a lazy Instance access to find them. If an Instance access during a scene load already auto-created a bare instance, the real instance takes over and destroys the stand-in when it wakes. Auto-creation now logs at info level (with the access site's stack) and a takeover logs a warning. Subclasses that declare Awake, OnDestroy, or OnApplicationQuit must now override the base methods and call the base implementation.
+
 ## [3.3.10] - 2026-05-12
 - Fixed an issue where the versioning tool was not in an Editor folder.
 
