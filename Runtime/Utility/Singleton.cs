@@ -26,6 +26,26 @@ namespace Buck
         // opposed to a scene or prefab instance carrying real serialized data.
         static bool m_InstanceWasAutoCreated = false;
 
+        // Unity does not invoke RuntimeInitializeOnLoadMethod inside a generic type, so every
+        // closed Singleton<T> registers its reset here and PlayModeStatics runs it at the start
+        // of each Play session. Without it, a session that ends with m_AppIsQuitting set (every
+        // editor Play session does) would deny Instance to the next session once its first
+        // scene swap destroys an instance, and a lazy Instance access before Awake would return
+        // null with the "already destroyed" warning.
+        static Singleton()
+            => PlayModeStatics.Register(ResetStatics);
+
+        static void ResetStatics()
+        {
+            lock (m_Lock)
+            {
+                m_Instance = null;
+                m_ShuttingDown = false;
+                m_AppIsQuitting = false;
+                m_InstanceWasAutoCreated = false;
+            }
+        }
+
         /// <summary>
         /// Access singleton instance through this propriety.
         /// </summary>
