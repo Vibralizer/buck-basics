@@ -1,5 +1,8 @@
 # Changelog
 
+## [3.4.1] - 2026-10-06
+- Play mode without domain reload (Enter Play Mode Settings, and Unity's CoreCLR runtime) is supported. A new PlayModeStatics class runs at the start of every Play session: Singleton<T> and SoftSingleton<T> statics are reset (Unity does not run RuntimeInitializeOnLoadMethod inside generic types, so each closed type registers a reset from its static constructor), GameEvent listener lists are cleared, BaseVariable<T> values return to their default (the work OnEnable used to do after each domain reload) and RuntimeSet<T> items are cleared. Nothing changes in a player or in an editor that still reloads the domain.
+
 ## [3.4.0] - 2026-07-29
 - Singleton<T> scene and prefab instances now register themselves as Instance in their Awake instead of waiting for a lazy Instance access to find them. If an Instance access during a scene load already auto-created a bare instance, the real instance takes over and destroys the stand-in when it wakes. Auto-creation now logs at info level (with the access site's stack) and a takeover logs a warning. Subclasses that declare Awake, OnDestroy, or OnApplicationQuit must now override the base methods and call the base implementation.
 
