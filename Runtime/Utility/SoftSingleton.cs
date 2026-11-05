@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) 2025 BUCK Design LLC - https://github.com/buck-co
+// MIT License - Copyright (c) 2025 BUCK Design LLC - https://github.com/buck-co
 
 using UnityEngine;
 
@@ -13,6 +13,10 @@ namespace Buck
     public class SoftSingleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         protected static T m_Instance;
+
+        // See Singleton<T>: a generic type's statics are reset through PlayModeStatics.
+        static SoftSingleton()
+            => PlayModeStatics.Register(() => m_Instance = null);
 
         [SerializeField] bool m_dontDestroyOnLoad = true;
 
